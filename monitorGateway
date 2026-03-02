@@ -80,6 +80,14 @@ if [ -z "$HOST" ]; then
        HOST="grandstreet.group"
 fi
 
+BASENAME=`basename $0`
+SHPID=`ps -ef | grep $BASENAME | grep -v $$`
+if [ -z "$SHPID" ]; then
+	echo "bailing, script already running. pid: $SHPID"
+	exit;
+
+fi
+
 #   MAIN
 #
 ############
