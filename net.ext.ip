@@ -1,0 +1,7 @@
+#!/bin/sh
+
+UN=$USER
+
+sudo ip route > /tmp/route
+sudo chown $UN:$UN /tmp/route
+cat /tmp/route | grep `net.ext.net` | grep -v default | cperl '/src ([\d\.]+)/ && print $1'

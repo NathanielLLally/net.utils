@@ -1,0 +1,2 @@
+#!/bin/sh
+ip route | cperl '/default.*dev ([\w\d]+)/ && print $1'

@@ -1,0 +1,4 @@
+#!/bin/sh
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat --flush
+iptables -t nat -A POSTROUTING -p tcp -s 192.168.0.0/16 -d ! 192.168.0.0/16 -o `net.ext.dev` -j SNAT --to-source `net.ext.ip`
