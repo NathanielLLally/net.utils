@@ -1,0 +1,108 @@
+#!/bin/sh
+
+RESETWIFI=0
+PERSIST=0
+LOG="/tmp/monitorGateway.log"
+PORT=2224
+HOST=$1
+PID="$$"
+RETRY=0
+MAXRETRY=10
+
+
+handleBind() {
+	local PORT
+	PORT="$1"
+	echo "enter handleBind"
+	EMSG=`cat $LOG | grep "remote port forwarding failed for listen port"`
+	if [ -n "$EMSG" ]; then
+
+		echo "Error: gateway tunnel failed! $EMSG"
+		OFFENDINGPID=`sudo netstat -ltnp  | grep $PORT | awk '{print $7}'`
+		if [ -n "$OFFENDINGPID" ]; then
+			echo "found existing process with port bound, killing process waiting for tcp/ip timeout"
+			sudo kill $OFFENDINGPID	
+			sleep 242
+		fi
+
+	fi
+
+
+}
+
+
+connect() {
+	local HOST
+	local PORT
+	HOST="$1"
+	PORT="$2"
+
+	echo "establishing gateway to $HOST over $PORT"
+	ssh -A -R 0.0.0.0:$PORT:localhost:22 $HOST -E $LOG -N -f 
+	OUT=`cat $LOG`
+	until [ -n "$OUT" ]; do
+		OUT=`cat $LOG`
+		sleep 1
+	done
+
+
+	echo $OUT
+	exit
+
+	echo $OUT
+	sleep 3
+	EMSG=`echo $OUT | grep "remote port forwarding failed for listen port"`
+	#Warning: remote port forwarding failed for listen port 2224
+	if [ -n "$EMSG" ]; then
+		handleBind "$PORT"
+
+		# re-connect logic
+		#
+		# avoid re-entrant loop
+		#
+		echo "funcname caller: $FUNCNAME[0]"
+		if [ "${FUNCNAME[0]}" != "source" ]; then
+			RETRY=`expr $RETRY + 1`
+			if [ "$RETRY" -le "$MAXRETRY" ]; then
+				echo "retry number $RETRY"
+				connect "$HOST" "$PORT" 
+			else 
+				echo "bailing after $RETRY retries"
+			fi
+			
+		fi
+	fi
+}
+
+#  process args
+#
+if [ -z "$HOST" ]; then
+       HOST="grandstreet.group"
+fi
+
+#   MAIN
+#
+############
+
+echo "Pid of monitor process $PID"
+echo $PID > /tmp/monitorGateway.pid
+
+if [ "$RESETWIFI" -eq "1" ]; then
+	nmcli c down wlan0
+	nmcli c down wlan1
+	nmcli c up wlan0
+	nmcli c up wlan1
+fi
+
+
+while [ "$PERSIST"=="1" ]; do
+	connect "$HOST" "$PORT"
+	sleep 1;
+done
+
+
+connect "$HOST" "$PORT"
+
+
+
+sudo rm /run/monitorGateway.pid
