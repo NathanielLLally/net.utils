@@ -8,10 +8,6 @@ PID="$$"
 RETRY=0
 MAXRETRY=10
 
-#  this command is expected to be blocking
-#
-REMOTE_LISTENING_CMD="watch -gn 10 \"sudo netstat -lptn | grep $PORT | grep sshd\""
-
 #TODO: maybe do some kind of logic for daemon/service/tty/pty
 #
 log() {
@@ -49,21 +45,13 @@ connect() {
 
 	log "establishing gateway to $HOST over $PORT"
 	#ssh -A -R 0.0.0.0:$PORT:localhost:22 $HOST -E $LOG -N -f 
-  REMOTE_LISTENING=
-  if [ -n "$REMOTE_LISTENING" ]; then
-    echo "Tunnel is Active over TCP port $PORT" 
-  else
-    echo "NO Active Tunnel!!!"
-  fi
-  	# -E is redirect of stderr
-	# -f is fork
-	#
-	ssh -A -R 0.0.0.0:$PORT:localhost:22 $HOST -E $LOG -f "$REMOTE_LISTENING_CMD"
+	ssh -A -R 0.0.0.0:$PORT:localhost:22 $HOST -E $LOG -f "portListening $PORT"
 	OUT=`cat $LOG`
 	until [ -n "$OUT" ]; do
 		OUT=`cat $LOG`
 		sleep 1
 	done
+
 
 	log $OUT
 	exit
@@ -142,3 +130,9 @@ connect "$HOST" "$PORT"
 
 #let systemd
 #sudo rm /run/monitorGateway.pid
+  ISLISTEN=`sudo netstat -lptn | grep $PORT | grep sshd`;
+  if [ -n "$ISLISTEN" ]; then
+    echo "Tunnel is Active over TCP port $PORT" 
+  else
+    echo "NO Active Tunnel!!!"
+  fi

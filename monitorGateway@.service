@@ -1,0 +1,34 @@
+#
+#  TODO: make system service using run-as
+#
+#  install:
+#    
+#    mkdir -p ~/.config/systemd/user/
+#    cp monitorGateway@.service ~/.config/systemd/user/
+#    systemctrl --user enable monitorGateway@%i.service
+#    $1 = %i = tcp PORT
+#    $2 = host
+#
+#
+##/usr/lib/systemd/system/monitorGateway@.service
+[Unit]
+Description=monitorGateway ssh remote gateway tunnel service
+After=network.target
+
+[Service]
+Type=simple
+RemainAfterExit=yes
+SyslogIdentifier=monitorGateway
+User=nathaniel
+#Environment=""
+PIDFile=/run/monitorGateway.%i.pid
+WorkingDirectory=/home/nathaniel
+ExecStart=/home/nathaniel/bin/monitorGateway %i
+ExecStop=kill -15 `cat /run/monitorGateway.%i.pid
+
+Restart=on-abort
+RestartSec=90s
+
+[Install]
+WantedBy=default.target
+#WantedBy=multi-user.target

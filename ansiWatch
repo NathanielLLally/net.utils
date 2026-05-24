@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+#  TODO: precise ansi cursor control with chr erasure [insert codes here]
+#     maybe cshell
+#
+#  args processing:  go 4 it, feel free to insert yaml getopt foo below
+#
+#
+#  April 2026 Nathaniel Lallya
+#
+
+CMD=$1
+
+FONT=""
+FONTLETTERS="Alpha"
+FONTLETTERS="Crazy"
+FONTLETTERS="caligraphy"
+FONTLETTERS="broadway"
+FONTSPACE="broadway"
+FONTSPACE="1Row"
+
+if [ -z "$FONT" ]; then
+	FONT="broadway" #no numbers
+	FONT="DOS_Rebel"
+	FONT="Big_Money-nw"
+	FONT="3d_diagonal"
+	FONT="Banner3-D"
+	FONT="ANSI_Shadow"
+fi
+RENDER="toilet  -t -S -f term"
+
+W=350
+H=90
+CX=175
+CY=45
+
+Y=80
+X=80
+
+printf "\033[2J"
+while [ 1==1 ]; do 
+TIME=$(date +"%l:%M:%S %P")
+DAY=$(date +"%_m/%d/%g")
+DAY=$(date +"%A")
+DATE=$(date +"%B %d '%g")
+EXE=$(basename $0)
+CMDO="printUsage: $EXE [cmd]"
+if [ -n "$CMD" ]; then
+	CMDO=$("$CMD")
+fi
+#	printf "\033[1J"; 
+	#echo "$TIME\n$DAY\n$DATE" | toilet -ct -S -f $FONT
+	printf "\033[H\033[1J"
+#	printf "\033[%bu;%buH\033[1K", $Y + 1, $X;
+	echo "___" | toilet -ct -S -f $FONTSPACE
+	echo "$TIME\n" | toilet -ct -W -f $FONT
+	echo "___" | toilet -ct -S -f $FONTSPACE
+	echo "\n$DAY\n\n" | toilet -ct -W -f $FONTLETTERS
+	echo "___" | toilet -ct -S -f $FONTSPACE
+	echo "___" | toilet -ct -S -f $FONTSPACE
+	echo "\n$DATE\n" | toilet -ct -W -f $FONT
+	echo "\n$CMDO\n" | toilet -ct -W
+	sleep 0.75;
+done
