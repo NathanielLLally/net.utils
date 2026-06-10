@@ -1,0 +1,21 @@
+[Unit]
+Description=fw-blacklist monitor daemon
+After=network.target
+Documentation=man:ipset(8) man:iptables(8)
+
+[Service]
+Type=simple
+ExecStartPre=/usr/local/sbin/fw-blacklist init
+ExecStart=/usr/local/sbin/fw-blacklist monitor
+ExecStop=/usr/local/sbin/fw-blacklist teardown
+Restart=on-failure
+RestartSec=10
+User=root
+
+# Harden the unit
+ProtectSystem=strict
+ReadWritePaths=/var/lib/fw-blacklist
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+
+[Install]
+WantedBy=multi-user.target

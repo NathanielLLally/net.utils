@@ -1,0 +1,24 @@
+# fw-blacklist-purge.timer + fw-blacklist-purge.service
+# Lightweight alternative to running the monitor daemon:
+# just purges expired state entries every 5 minutes
+
+# ── fw-blacklist-purge.service ────────────────────────────────────────────────
+# [Unit]
+# Description=Purge expired fw-blacklist entries
+# 
+# [Service]
+# Type=oneshot
+# ExecStart=/usr/local/sbin/fw-blacklist purge
+# User=root
+
+# ── fw-blacklist-purge.timer ──────────────────────────────────────────────────
+[Unit]
+Description=Periodic fw-blacklist expiry purge
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
